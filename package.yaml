@@ -23,6 +23,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - sdl2
+  - linear
 
 executables:
   flyaskell-exe:
