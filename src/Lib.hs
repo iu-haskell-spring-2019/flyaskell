@@ -38,6 +38,11 @@ data Particle = Particle { color :: Color
                          , mass :: Double
 }
 
+calcPressure :: Double -> Double -> Double
+calcPressure p p0 = k * (p - p0)
+  where
+    k = 0.3
+    p0 = 0
 
 wPoly :: Double -> Double -> Double
 wPoly r h
