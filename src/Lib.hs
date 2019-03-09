@@ -3,11 +3,10 @@ module Lib (run) where
 import Functions (advance)
 import Particle
 import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Simulate (ViewPort)
 import Linear (V2(..))
 
 window :: Display
-window = InWindow "Nice Window" (1600, 900) (10, 10)
+window = InWindow "Anime eto iskusstvo" (1600, 900) (10, 10)
 
 background :: Color
 background = black
@@ -20,7 +19,7 @@ drawParticle part = Graphics.Gloss.color white (translate x y (circle 2))
     V2 i j = position part
     x :: Float
     y :: Float
-    (x, y) = (realToFrac i, realToFrac j)
+    (x, y) = (realToFrac i / 100,  realToFrac j / 100)
 
 drawAll :: Water -> Picture
 drawAll list = foldl g blank list
@@ -28,8 +27,7 @@ drawAll list = foldl g blank list
     g :: Picture -> Particle -> Picture
     g pic part = pic <> drawParticle part
 
-adv :: ViewPort -> Float -> Water -> Water
-adv _ _ = advance
-
 run :: IO ()
 run = simulate window background 10 initialState drawAll adv
+  where
+    adv _ _ = advance

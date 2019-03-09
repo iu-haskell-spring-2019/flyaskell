@@ -31,7 +31,9 @@ advance :: Water -> Water
 advance water = map g water
   where
     g :: Particle -> Particle
-    g part = part {position=(position part) + V2 1 1}
+    g part = part { position=position part + velocity part
+                  , velocity=velocity part + (V2 0 (-9.8))
+                  }
 
 calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
