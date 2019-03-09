@@ -12,4 +12,4 @@ data Particle = Particle { color :: Color
 type Water = [Particle]
 
 initialState :: Water
-initialState = []
+initialState = [Particle {Particle.color=blue, position=(1.1, 2.6), velocity=(5.5, 6.2), mass=5.0}]
