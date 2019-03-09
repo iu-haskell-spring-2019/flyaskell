@@ -1,6 +1,7 @@
 module Functions (advance) where
 
 import Particle
+import Linear (distance)
 
 calcPressure :: Double -> Double -> Double
 calcPressure p p0 = k * (p - p0)
@@ -26,13 +27,10 @@ hessWPoly r h
   | r <= h = 315 / 64 / pi / h**9 * 6 * (h**2 - r**2) * (4 * r**2 - (h**2 - r**2))
   | otherwise = 0
 
-dist :: Coord -> Coord -> Double
-dist (x1,y1) (x2,y2) = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
-
 advance :: Water -> Water
 advance water = water
 
 calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
 calcDensity (p:ps) func coord = (calcDensity ps func coord) +
-  ((mass p) * (func (dist (position p) coord) h))
+  ((mass p) * (func (distance (position p) coord) h))

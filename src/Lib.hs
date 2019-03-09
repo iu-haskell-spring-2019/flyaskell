@@ -3,6 +3,7 @@ module Lib (run) where
 import Functions (advance)
 import Particle
 import Graphics.Gloss
+import Linear (V2(..))
 
 window :: Display
 window = InWindow "Nice Window" (1600, 900) (10, 10)
@@ -15,7 +16,7 @@ drawParticle part = translate x y (circle 2)
   where
     i :: Double
     j :: Double
-    (i, j) = position part
+    V2 i j = position part
     x :: Float
     y :: Float
     (x, y) = (realToFrac i, realToFrac j)
