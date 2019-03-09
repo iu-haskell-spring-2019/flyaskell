@@ -9,8 +9,8 @@ calcPressure p = k * (p - p0)
     k = 0.3
     p0 = 0
 
-calcPressurePoint :: Particle -> Water -> Double
-calcPressurePoint part water = calcPressure (calcDensityPoint part water)
+calcPressurePoint :: Water -> Particle -> Double
+calcPressurePoint water part = calcPressure (calcDensityPoint part water)
 
 -- p
 unitVector :: Particle -> Particle -> Coord
@@ -26,12 +26,12 @@ calcPressureForceBetweenPoints part1 part2 water = (unitVector part2 part1) ^*
   (pressure1+pressure2) ^/ (2 * density1) ^* (wPoly len h)
   where
     len = distance (position part1) (position part2)
-    pressure1 = calcPressurePoint part1 water
-    pressure2 = calcPressurePoint part2 water
+    pressure1 = calcPressurePoint water part1
+    pressure2 = calcPressurePoint water part2
     density1 = calcDensityPoint part1 water
 
-calcPressureForcePoint :: Particle -> Water -> Coord
-calcPressureForcePoint part water = sum (map g water)
+calcPressureForcePoint :: Water -> Particle -> Coord
+calcPressureForcePoint water part = sum (map g water)
   where
     g :: Particle -> Coord
     g help_part = calcPressureForceBetweenPoints part help_part water
@@ -66,9 +66,11 @@ boundCoord = lowerBoundCoord . upperBoundCoord
 advance :: Water -> Water
 advance water = map g water
   where
+    force :: Particle -> Coord
+    force = calcPressureForcePoint water
     g :: Particle -> Particle
     g part = part { position=boundCoord (position part + velocity part)
-                  , velocity=velocity part + (V2 0 (-9.8 / 15))
+                  , velocity=velocity part + (V2 0 (-9.8 / 15)) + force part ^/ mass part
                   }
 
 calcDensityPoint :: Particle -> Water -> Double
