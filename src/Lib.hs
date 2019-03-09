@@ -11,13 +11,23 @@ background :: Color
 background = white
 
 drawParticle :: Particle -> Picture
-drawParticle (Particle c (x, y) v m) = translate x y (circle 2)
+drawParticle part = translate x y (circle 2)
+  where
+    i :: Double
+    j :: Double
+    (i, j) = position part
+    x :: Float
+    y :: Float
+    (x, y) = (realToFrac i, realToFrac j)
 
 drawAll :: Water -> Picture
 drawAll list = foldl g blank list
   where
     g :: Picture -> Particle -> Picture
     g pic part = pic <> drawParticle part
+
+drawing :: Float -> Picture
+drawing t = drawAll initialState
 
 run :: IO ()
 run = animate window background drawing
