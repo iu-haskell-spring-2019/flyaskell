@@ -10,10 +10,10 @@ window :: Display
 window = InWindow "Nice Window" (1600, 900) (10, 10)
 
 background :: Color
-background = white
+background = black
 
 drawParticle :: Particle -> Picture
-drawParticle part = translate x y (circle 2)
+drawParticle part = Graphics.Gloss.color white (translate x y (circle 2))
   where
     i :: Double
     j :: Double

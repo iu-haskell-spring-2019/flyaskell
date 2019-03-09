@@ -1,7 +1,7 @@
 module Functions (advance) where
 
 import Particle
-import Linear (distance)
+import Linear (V2(..), distance)
 
 calcPressure :: Double -> Double -> Double
 calcPressure p p0 = k * (p - p0)
@@ -28,7 +28,10 @@ hessWPoly r h
   | otherwise = 0
 
 advance :: Water -> Water
-advance water = water
+advance water = map g water
+  where
+    g :: Particle -> Particle
+    g Particle {Particle.color=color, position=pos, velocity=vel, mass=mass} = Particle {Particle.color=color, position=pos + V2 1 1, velocity=vel, mass=mass}
 
 calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
