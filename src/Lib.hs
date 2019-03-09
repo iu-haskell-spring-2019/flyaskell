@@ -10,8 +10,11 @@ window = InWindow "Nice Window" (1600, 900) (10, 10)
 background :: Color
 background = white
 
-drawing :: Float -> Picture
-drawing a = circle (a * 100)
+drawAll :: Water -> Picture
+drawAll list = foldl g blank list
+  where
+    g :: Picture -> Particle -> Picture
+    g pic part = pic <> drawParticle part
 
 run :: IO ()
 run = animate window background drawing
