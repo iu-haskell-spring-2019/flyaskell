@@ -3,6 +3,7 @@ module Lib (run) where
 import Functions (advance)
 import Particle
 import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Simulate (ViewPort)
 import Linear (V2(..))
 
 window :: Display
@@ -27,8 +28,8 @@ drawAll list = foldl g blank list
     g :: Picture -> Particle -> Picture
     g pic part = pic <> drawParticle part
 
-drawing :: Float -> Picture
-drawing t = drawAll initialState
+adv :: ViewPort -> Float -> Water -> Water
+adv _ _ = advance
 
 run :: IO ()
-run = animate window background drawing
+run = simulate window background 10 initialState drawAll adv
