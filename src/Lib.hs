@@ -13,10 +13,10 @@ run = do
   initializeAll
   window <- createWindow "My SDL Application" defaultWindow
   renderer <- createRenderer window (-1) defaultRenderer
-  appLoop renderer
+  appLoop renderer initialState
 
-appLoop :: Renderer -> IO ()
-appLoop renderer = do
+appLoop :: Renderer -> Water -> IO ()
+appLoop renderer water = do
   events <- pollEvents
   let eventIsQPress event =
         case eventPayload event of
@@ -25,10 +25,8 @@ appLoop renderer = do
             keysymKeycode (keyboardEventKeysym keyboardEvent) == KeycodeQ
           _ -> False
       qPressed = any eventIsQPress events
-  rendererDrawColor renderer $= V4 0 0 255 255
-  clear renderer
-  present renderer
-  unless qPressed (appLoop renderer)
+  render renderer water
+  unless qPressed (appLoop renderer (advance water))
 
 data Color = Green | Red | Blue
 type Coord = (Double, Double)
@@ -73,4 +71,14 @@ calcDensity (p:ps) func coord = (calcDensity ps func coord) +
   ((mass p) * (func (dist (position p) coord) h))
 
 
--- drawParticle :: Particle -> ???
+initialState :: Water
+initialState = []
+
+advance :: Water -> Water
+advance water = water
+
+render :: Renderer -> Water -> IO ()
+render renderer particles = do
+  rendererDrawColor renderer $= V4 0 0 255 255
+  clear renderer
+  present renderer
