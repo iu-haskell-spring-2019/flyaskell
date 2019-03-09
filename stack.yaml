@@ -40,6 +40,7 @@ packages:
 extra-deps:
 - "sdl2-2.4.1.0"
 - "linear-1.20.8"
+- "gloss-1.13.0.1"
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

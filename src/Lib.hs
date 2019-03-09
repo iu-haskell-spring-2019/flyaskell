@@ -8,6 +8,7 @@ import Particle
 import SDL
 import Linear (V4(..))
 import Control.Monad (unless)
+import Graphics.Gloss
 
 run :: IO ()
 run = do
