@@ -54,11 +54,22 @@ hessWPoly r h
   | r <= h = 315 / 64 / pi / h**9 * 6 * (h**2 - r**2) * (4 * r**2 - (h**2 - r**2))
   | otherwise = 0
 
+lowerBoundCoord :: Coord -> Coord
+lowerBoundCoord (V2 a b) = V2 (max a (-800)) (max b (-450))
+
+upperBoundCoord :: Coord -> Coord
+upperBoundCoord (V2 a b) = V2 (min a 800) (min b 450)
+
+boundCoord :: Coord -> Coord
+boundCoord = lowerBoundCoord . upperBoundCoord
+
 advance :: Water -> Water
 advance water = map g water
   where
     g :: Particle -> Particle
-    g part = part {position=(position part) + V2 1 1}
+    g part = part { position=boundCoord (position part + velocity part)
+                  , velocity=velocity part + (V2 0 (-9.8 / 15))
+                  }
 
 calcDensityPoint :: Particle -> Water -> Double
 calcDensityPoint particle water = calcDensity water wPoly (position particle)
