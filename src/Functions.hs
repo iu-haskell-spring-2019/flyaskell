@@ -1,5 +1,7 @@
 module Functions (advance) where
+
 import Particle
+
 calcPressure :: Double -> Double -> Double
 calcPressure p p0 = k * (p - p0)
   where
