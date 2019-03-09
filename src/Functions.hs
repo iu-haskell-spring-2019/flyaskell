@@ -1,13 +1,40 @@
 module Functions (advance) where
 
 import Particle
-import Linear (V2(..), distance)
+import Linear
 
-calcPressure :: Double -> Double -> Double
-calcPressure p p0 = k * (p - p0)
+calcPressure :: Double -> Double
+calcPressure p = k * (p - p0)
   where
     k = 0.3
     p0 = 0
+
+calcPressurePoint :: Particle -> Water -> Double
+calcPressurePoint part water = calcPressure (calcDensityPoint part water)
+
+-- p
+unitVector :: Particle -> Particle -> Coord
+unitVector start end
+  | position start == position end = V2 0 0
+  | otherwise = ((position end) - (position start)) ^/ len
+    where
+      len :: Double
+      len = distance (position start) (position end)
+-- force from part2 on part1
+calcPressureForceBetweenPoints :: Particle -> Particle -> Water -> Coord
+calcPressureForceBetweenPoints part1 part2 water = (unitVector part2 part1) ^*
+  (pressure1+pressure2) ^/ (2 * density1) ^* (wPoly len h)
+  where
+    len = distance (position part1) (position part2)
+    pressure1 = calcPressurePoint part1 water
+    pressure2 = calcPressurePoint part2 water
+    density1 = calcDensityPoint part1 water
+
+calcPressureForcePoint :: Particle -> Water -> Coord
+calcPressureForcePoint part water = sum (map g water)
+  where
+    g :: Particle -> Coord
+    g help_part = calcPressureForceBetweenPoints part help_part water
 
 h :: Double
 h = 5
@@ -31,9 +58,10 @@ advance :: Water -> Water
 advance water = map g water
   where
     g :: Particle -> Particle
-    g part = part { position=position part + velocity part
-                  , velocity=velocity part + (V2 0 (-9.8))
-                  }
+    g part = part {position=(position part) + V2 1 1}
+
+calcDensityPoint :: Particle -> Water -> Double
+calcDensityPoint particle water = calcDensity water wPoly (position particle)
 
 calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
