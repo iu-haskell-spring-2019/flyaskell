@@ -1,10 +1,13 @@
-module Functions where
+module Functions (advance) where
 import Particle
 calcPressure :: Double -> Double -> Double
 calcPressure p p0 = k * (p - p0)
   where
     k = 0.3
     p0 = 0
+
+h :: Double
+h = 5
 
 wPoly :: Double -> Double -> Double
 wPoly r h
@@ -23,3 +26,11 @@ hessWPoly r h
 
 dist :: Coord -> Coord -> Double
 dist (x1,y1) (x2,y2) = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+
+advance :: Water -> Water
+advance water = water
+
+calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
+calcDensity [] func coord = 0
+calcDensity (p:ps) func coord = (calcDensity ps func coord) +
+  ((mass p) * (func (dist (position p) coord) h))
