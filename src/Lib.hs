@@ -22,10 +22,10 @@ drawParticle part = Graphics.Gloss.color white (translate x y (circle 2))
     (x, y) = (realToFrac i,  realToFrac j)
 
 drawAll :: Water -> Picture
-drawAll list = foldl g blank list
-  where
-    g :: Picture -> Particle -> Picture
-    g pic part = pic <> drawParticle part
+drawAll water = foldl g blank water
+ where
+   g :: Picture -> Particle -> Picture
+   g pic part = pic <> drawParticle part
 
 run :: IO ()
 run = simulate window background 30 initialState drawAll adv

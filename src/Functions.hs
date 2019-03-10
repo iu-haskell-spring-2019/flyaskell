@@ -9,8 +9,8 @@ calcPressure p = k * (p - p0)
     k = 0.3
     p0 = 0
 
-calcPressurePoint :: Water -> Particle -> Double
-calcPressurePoint water part = calcPressure (calcDensityPoint part water)
+calcPressurePoint :: Double -> Double
+calcPressurePoint = calcPressure
 
 -- p
 unitVector :: Particle -> Particle -> Coord
@@ -20,21 +20,21 @@ unitVector start end
     where
       len :: Double
       len = distance (position start) (position end)
+
 -- force from part2 on part1
-calcPressureForceBetweenPoints :: Particle -> Particle -> Water -> Coord
-calcPressureForceBetweenPoints part1 part2 water = (unitVector part2 part1) ^*
-  (pressure1+pressure2) ^/ (2 * density1) ^* (wPoly len h)
+calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
+calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) = (unitVector part2 part1) ^*
+  (pressure1 + pressure2) ^/ (2 * dens1) ^* (wPoly len h)
   where
     len = distance (position part1) (position part2)
-    pressure1 = calcPressurePoint water part1
-    pressure2 = calcPressurePoint water part2
-    density1 = calcDensityPoint part1 water
+    pressure1 = calcPressurePoint dens1
+    pressure2 = calcPressurePoint dens2
 
-calcPressureForcePoint :: Water -> Particle -> Coord
-calcPressureForcePoint water part = sum (map g water)
+calcPressureForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
+calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
   where
-    g :: Particle -> Coord
-    g help_part = calcPressureForceBetweenPoints part help_part water
+    g :: (Double, Particle) -> Coord
+    g helpDensPart = calcPressureForceBetweenPoints densPart helpDensPart
 
 h :: Double
 h = 5
@@ -64,19 +64,28 @@ boundCoord :: Coord -> Coord
 boundCoord = lowerBoundCoord . upperBoundCoord
 
 advance :: Water -> Water
-advance water = map g water
+advance water = map g densAndWater
   where
-    force :: Particle -> Coord
-    force = calcPressureForcePoint water
-    g :: Particle -> Particle
-    g part = part { position=boundCoord (position part + velocity part)
-                  , velocity=velocity part + (V2 0 (-9.8 / 15)) + force part ^/ mass part
-                  }
+    densAndWater :: [(Double, Particle)]
+    densAndWater = zip densities water
+    densities :: [Double]
+    densities = getDensity water
+    force :: (Double, Particle) -> Coord
+    force = calcPressureForcePoint densAndWater
+    g :: (Double, Particle) -> Particle
+    g (dens, part) = part { position=boundCoord (position part + velocity part)
+      , velocity=velocity part + (V2 0 (-9.8 / 15)) + force (dens, part) ^/ mass part}
+    
+
+calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
+calcDensity [] func coord = 0
+calcDensity (p:ps) func coord = (calcDensity ps func coord) + ((mass p) * (func (distance (position p) coord) h))
 
 calcDensityPoint :: Particle -> Water -> Double
 calcDensityPoint particle water = calcDensity water wPoly (position particle)
 
-calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
-calcDensity [] func coord = 0
-calcDensity (p:ps) func coord = (calcDensity ps func coord) +
-  ((mass p) * (func (distance (position p) coord) h))
+getDensity :: Water -> [Double]
+getDensity water = map g water
+  where 
+    g :: Particle -> Double
+    g part = calcDensityPoint part water
