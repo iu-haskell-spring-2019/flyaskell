@@ -3,11 +3,6 @@ module Functions where
 import Particle
 import Linear
 
-calcPressure :: Double -> Double
-calcPressure p = k * (p - p0)
-  where
-    k = 0.3
-    p0 = 0.1
 
 -- p
 unitVector :: Coord -> Coord -> Coord
@@ -16,7 +11,10 @@ unitVector start end
   | otherwise = (end - start) ^/ (distance start end)
 
 calcPressurePoint :: Double -> Double
-calcPressurePoint = calcPressure
+calcPressurePoint p = k * (p - p0)
+  where
+    k = 0.3
+    p0 = 0.1
 
 -- force from part2 on part1
 calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
@@ -36,7 +34,7 @@ calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
 
 calcViscosityForceBetweenPoints :: (Double,Particle) -> (Double,Particle) -> Coord
 calcViscosityForceBetweenPoints (dens1,part1) (dens2,part2) = ((velocity part1) - (velocity part2)) ^* (mass part2)
-  ^* (mu / dens2) ^* (gradWPoly ( distance (position part1) (position part2)))
+  ^* (mu / dens2) ^* (hessWPoly ( distance (position part1) (position part2)))
 
 calcViscosityForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
 calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
@@ -44,7 +42,11 @@ calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
     g :: (Double, Particle) -> Coord
     g helpPart = calcViscosityForceBetweenPoints densPart helpPart
 
+calcTensionForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
+calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = sigma * (mass part2) 
 
+sigma :: Double
+sigma = 1
 
 h :: Double
 h = 3
