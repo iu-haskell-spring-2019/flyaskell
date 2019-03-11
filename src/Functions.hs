@@ -43,7 +43,7 @@ calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
     g helpPart = calcViscosityForceBetweenPoints densPart helpPart
 
 calcTensionForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
-calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = sigma * (mass part2) 
+calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = (mass part2) ^* sigma
 
 sigma :: Double
 sigma = 1
