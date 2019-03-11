@@ -7,16 +7,16 @@ calcPressure :: Double -> Double
 calcPressure p = k * (p - p0)
   where
     k = 0.3
-    p0 = 0
-
-calcPressurePoint :: Double -> Double
-calcPressurePoint = calcPressure
+    p0 = 0.1
 
 -- p
 unitVector :: Coord -> Coord -> Coord
 unitVector start end
   | start == end = V2 0 0
   | otherwise = (end - start) ^/ (distance start end)
+
+calcPressurePoint :: Double -> Double
+calcPressurePoint = calcPressure
 
 -- force from part2 on part1
 calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
@@ -34,8 +34,23 @@ calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
     g :: (Double, Particle) -> Coord
     g helpDensPart = calcPressureForceBetweenPoints densPart helpDensPart
 
+calcViscosityForceBetweenPoints :: (Double,Particle) -> (Double,Particle) -> Coord
+calcViscosityForceBetweenPoints (dens1,part1) (dens2,part2) = ((velocity part1) - (velocity part2)) ^* (mass part2)
+  ^* (mu / dens2) ^* (gradWPoly ( distance (position part1) (position part2)))
+
+calcViscosityForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
+calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
+  where 
+    g :: (Double, Particle) -> Coord
+    g helpPart = calcViscosityForceBetweenPoints densPart helpPart
+
+
+
 h :: Double
 h = 3
+
+mu :: Double 
+mu = 1
 
 wPoly :: Double -> Double
 wPoly r
@@ -68,11 +83,13 @@ advance water = map g densAndWater
     densAndWater = zip densities water
     densities :: [Double]
     densities = getDensity water
-    force :: (Double, Particle) -> Coord
-    force = calcPressureForcePoint densAndWater
+    pressureForce :: (Double, Particle) -> Coord
+    pressureForce = calcPressureForcePoint densAndWater
+    viscosityForce :: (Double, Particle) -> Coord
+    viscosityForce = calcViscosityForcePoint densAndWater
     g :: (Double, Particle) -> Particle
     g (dens, part) = part { position=boundCoord (position part + velocity part)
-      , velocity=velocity part + (V2 0 (-9.8 / 15)) + force (dens, part) ^/ mass part}
+      , velocity=velocity part + (V2 0 (-9.8 / 15)) + (pressureForce (dens, part) + viscosityForce (dens, part)) ^/ mass part}
 
 
 calcDensity :: Water -> (Double -> Double) -> Coord -> Double
