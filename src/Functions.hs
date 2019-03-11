@@ -23,8 +23,8 @@ unitVector start end
 
 -- force from part2 on part1
 calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
-calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) = (unitVector part2 part1) ^*
-  (pressure1 + pressure2) ^/ (2 * dens1) ^* (wPoly len h)
+calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) = (unitVector part2 part1) ^* (mass part2) ^*
+  (pressure1 + pressure2) ^/ (2 * dens2) ^* (wPoly len h)
   where
     len = distance (position part1) (position part2)
     pressure1 = calcPressurePoint dens1
@@ -77,7 +77,7 @@ advance water = map g densAndWater
     g :: (Double, Particle) -> Particle
     g (dens, part) = part { position=boundCoord (position part + velocity part)
       , velocity=velocity part + (V2 0 (-9.8 / 15)) + force (dens, part) ^/ mass part}
-    
+
 
 calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
@@ -88,6 +88,6 @@ calcDensityPoint particle water = calcDensity water wPoly (position particle)
 
 getDensity :: Water -> [Double]
 getDensity water = map g water
-  where 
+  where
     g :: Particle -> Double
     g part = calcDensityPoint part water
