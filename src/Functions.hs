@@ -37,7 +37,9 @@ calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
     g helpDensPart = calcPressureForceBetweenPoints densPart helpDensPart
 
 h :: Double
-h = 5
+h = 2
+
+
 
 wPoly :: Double -> Double -> Double
 wPoly r h
