@@ -46,7 +46,7 @@ calcTensionForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coo
 calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = unit ^* ((mass part2) * sigma / dens2 *
   (hessWPoly (distance (position part1) (position part2))))
   where
-    unit = unitVector (position part1) (position part2)
+    unit = rotateDevanosto (unitVector (position part1) (position part2))
 
 calcTensionForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
 calcTensionForcePoint densAndWater densPart = sum (map g densAndWater)
@@ -87,6 +87,9 @@ upperBoundCoord (V2 a b) = V2 (min a 800) (min b 450)
 boundCoord :: Coord -> Coord
 boundCoord = lowerBoundCoord . upperBoundCoord
 
+rotateDevanosto :: Coord -> Coord
+rotateDevanosto (V2 a b) = V2 b (-a)
+
 advance :: Water -> Water
 advance water = map g densAndWater
   where
@@ -103,7 +106,7 @@ advance water = map g densAndWater
     g :: (Double, Particle) -> Particle
     g (dens, part) = part { position=boundCoord (position part + velocity part)
       , velocity=velocity part + (V2 0 (-9.8 / 15)) + (pressureForce (dens, part) + 
-        viscosityForce (dens, part) + tensionForce (dens,part)) ^/ mass part}
+          viscosityForce (dens, part) + tensionForce (dens,part)) ^/ mass part}
 
 
 calcDensity :: Water -> (Double -> Double) -> Coord -> Double
