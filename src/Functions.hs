@@ -1,4 +1,4 @@
-module Functions (advance) where
+module Functions where
 
 import Particle
 import Linear
@@ -13,19 +13,17 @@ calcPressurePoint :: Double -> Double
 calcPressurePoint = calcPressure
 
 -- p
-unitVector :: Particle -> Particle -> Coord
+unitVector :: Coord -> Coord -> Coord
 unitVector start end
-  | position start == position end = V2 0 0
-  | otherwise = ((position end) - (position start)) ^/ len
-    where
-      len :: Double
-      len = distance (position start) (position end)
+  | start == end = V2 0 0
+  | otherwise = (end - start) ^/ (distance start end)
 
 -- force from part2 on part1
 calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
-calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) = (unitVector part2 part1) ^* (mass part2) ^*
-  (pressure1 + pressure2) ^/ (2 * dens2) ^* (wPoly len h)
+calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) =
+  unit ^* ((mass part2) * (pressure1 + pressure2) / (2 * dens2) * (gradWPoly len))
   where
+    unit = unitVector (position part2) (position part1)
     len = distance (position part1) (position part2)
     pressure1 = calcPressurePoint dens1
     pressure2 = calcPressurePoint dens2
@@ -37,22 +35,20 @@ calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
     g helpDensPart = calcPressureForceBetweenPoints densPart helpDensPart
 
 h :: Double
-h = 2
+h = 3
 
-
-
-wPoly :: Double -> Double -> Double
-wPoly r h
+wPoly :: Double -> Double
+wPoly r
   | r <= h = 315 / 64 / pi / h**9 * (h**2 - r**2)**3
   | otherwise = 0
 
-gradWPoly :: Double -> Double -> Double
-gradWPoly r h
+gradWPoly :: Double -> Double
+gradWPoly r
   | r <= h = -315 / 64 / pi / h**9 * 6 * r * (h**2 - r**2) ** 2
   | otherwise = 0
 
-hessWPoly :: Double -> Double -> Double
-hessWPoly r h
+hessWPoly :: Double -> Double
+hessWPoly r
   | r <= h = 315 / 64 / pi / h**9 * 6 * (h**2 - r**2) * (4 * r**2 - (h**2 - r**2))
   | otherwise = 0
 
@@ -79,9 +75,9 @@ advance water = map g densAndWater
       , velocity=velocity part + (V2 0 (-9.8 / 15)) + force (dens, part) ^/ mass part}
 
 
-calcDensity :: Water -> (Double -> Double -> Double) -> Coord -> Double
+calcDensity :: Water -> (Double -> Double) -> Coord -> Double
 calcDensity [] func coord = 0
-calcDensity (p:ps) func coord = (calcDensity ps func coord) + ((mass p) * (func (distance (position p) coord) h))
+calcDensity (p:ps) func coord = (calcDensity ps func coord) + ((mass p) * (func (distance (position p) coord)))
 
 calcDensityPoint :: Particle -> Water -> Double
 calcDensityPoint particle water = calcDensity water wPoly (position particle)

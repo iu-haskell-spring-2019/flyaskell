@@ -15,7 +15,7 @@ type Water = [Particle]
 initialState :: Water
 initialState = [
     Particle {Particle.color=blue, position=(V2 a b), velocity=(V2 0 0), mass=5.0} 
-    | a <- [0, 50..500]
-    , b <- [0, 50..500]
+    | a <- [0, 1..10]
+    , b <- [0, 1..10]
     ]
 
