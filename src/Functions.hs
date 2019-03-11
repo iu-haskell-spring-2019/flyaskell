@@ -43,7 +43,16 @@ calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
     g helpPart = calcViscosityForceBetweenPoints densPart helpPart
 
 calcTensionForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
-calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = (mass part2) ^* sigma
+calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = unit ^* ((mass part2) * sigma / dens2 *
+  (hessWPoly (distance (position part1) (position part2))))
+  where
+    unit = unitVector (position part1) (position part2)
+
+calcTensionForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
+calcTensionForcePoint densAndWater densPart = sum (map g densAndWater)
+  where
+    g :: (Double, Particle) -> Coord
+    g helpDensPart = - (calcTensionForceBetweenPoints densPart helpDensPart)
 
 sigma :: Double
 sigma = 1
@@ -89,9 +98,12 @@ advance water = map g densAndWater
     pressureForce = calcPressureForcePoint densAndWater
     viscosityForce :: (Double, Particle) -> Coord
     viscosityForce = calcViscosityForcePoint densAndWater
+    tensionForce :: (Double,Particle) -> Coord
+    tensionForce  = calcTensionForcePoint densAndWater
     g :: (Double, Particle) -> Particle
     g (dens, part) = part { position=boundCoord (position part + velocity part)
-      , velocity=velocity part + (V2 0 (-9.8 / 15)) + (pressureForce (dens, part) + viscosityForce (dens, part)) ^/ mass part}
+      , velocity=velocity part + (V2 0 (-9.8 / 15)) + (pressureForce (dens, part) + 
+        viscosityForce (dens, part) + tensionForce (dens,part)) ^/ mass part}
 
 
 calcDensity :: Water -> (Double -> Double) -> Coord -> Double

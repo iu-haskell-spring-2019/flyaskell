@@ -28,6 +28,6 @@ drawAll water = foldl g blank water
    g pic part = pic <> drawParticle part
 
 run :: IO ()
-run = simulate window background 300 initialState drawAll adv
+run = simulate window background 30 initialState drawAll adv
   where
     adv _ _ = advance
