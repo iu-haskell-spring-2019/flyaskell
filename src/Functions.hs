@@ -55,13 +55,13 @@ calcTensionForcePoint densAndWater densPart = sum (map g densAndWater)
     g helpDensPart = - (calcTensionForceBetweenPoints densPart helpDensPart)
 
 sigma :: Double
-sigma = 1
+sigma = 0
 
 h :: Double
 h = 3
 
 mu :: Double 
-mu = 1
+mu = 2
 
 wPoly :: Double -> Double
 wPoly r
