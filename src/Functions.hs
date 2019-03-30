@@ -14,15 +14,28 @@ unitVector start end
 calcPressurePoint :: Double -> Double
 calcPressurePoint p = k * (p - p0)
   where
-    k = 30.0
-    p0 = 0.0
+    k = 2
+    p0 = 0.1
 
 -- Must be from 0 to 1
 attenuationBounceCoef :: Double
-attenuationBounceCoef = 1.0
+attenuationBounceCoef = 0
 
 gravityCoef :: Double
-gravityCoef = 0
+gravityCoef = 0.5
+
+
+-- 1.0 not bad
+tensionCoef :: Double
+tensionCoef = 1  
+
+h :: Double
+h = 15
+
+viscocityCoef :: Double 
+viscocityCoef = 2
+
+
 
 gravityForce :: Coord
 gravityForce = (V2 0 (-1)) ^* gravityCoef 
@@ -61,21 +74,17 @@ calcViscosityForceBetweenPoints (dens1,part1) (dens2,part2) = ((velocity part1) 
 
 
 calcTensionForceBetweenPoints :: DensPart -> DensPart -> Coord
-calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = -unit ^* ((mass part2) * tensionCoef / dens2 *
+calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = unit ^* ((mass part2) * tensionCoef / dens2 *
   (hessWPoly (distance (position part1) (position part2))))
   where
     unit =  (unitVector (position part1) (position part2))
 
 
 
-tensionCoef :: Double
-tensionCoef = 7
-
-h :: Double
-h = 8
-
-viscocityCoef :: Double 
-viscocityCoef = 1.75
+wDens  :: Double -> Double
+wDens r 
+  | r <= h    = (1-r/h) ** 2
+  | otherwise = 0
 
 wPoly :: Double -> Double
 wPoly r
@@ -127,7 +136,7 @@ advance water = map g densAndWater
     viscosityForce :: DensPart -> Coord
     viscosityForce = calcViscosityForcePoint densAndWater
     tensionForce :: (Double,Particle) -> Coord
-    tensionForce _ = V2 0 0
+    tensionForce = calcTensionForcePoint densAndWater
     g :: DensPart -> Particle
     g (dens, part) = applyBound part { position=position part + velocity part
       , velocity=velocity part + gravityForce + ((pressureForce (dens, part) + 
@@ -140,7 +149,7 @@ calcDensity [] func coord = 0
 calcDensity (p:ps) func coord = (calcDensity ps func coord) + ((mass p) * (func (distance (position p) coord)))
 
 calcDensityPoint :: Particle -> Water -> Double
-calcDensityPoint particle water = calcDensity water wPoly (position particle)
+calcDensityPoint particle water = calcDensity water wDens (position particle)
 
 getDensity :: Water -> [Double]
 getDensity water = map g water

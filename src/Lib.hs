@@ -12,7 +12,7 @@ background :: Color
 background = black
 
 drawParticle :: Particle -> Picture
-drawParticle part = Graphics.Gloss.color (Particle.color part) (translate x y (thickCircle 1 2))
+drawParticle part = Graphics.Gloss.color (Particle.color part) (translate x y (thickCircle 5 10))
   where
     i :: Double
     j :: Double
