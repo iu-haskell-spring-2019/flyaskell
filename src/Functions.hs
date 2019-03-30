@@ -4,6 +4,7 @@ import Particle
 import Linear
 
 
+type DensPart = (Double, Particle)
 -- p
 unitVector :: Coord -> Coord -> Coord
 unitVector start end
@@ -16,8 +17,27 @@ calcPressurePoint p = k * (p - p0)
     k = 0.3
     p0 = 0.1
 
+
+calcAbstractForcePoint :: (DensPart -> DensPart -> Coord) -> [DensPart] -> DensPart -> Coord
+calcAbstractForcePoint forceCalculator densWater particle = sum (map g densWater)
+  where
+    g :: DensPart -> Coord
+    g = forceCalculator particle
+
+
+
+calcPressureForcePoint :: [DensPart] -> DensPart -> Coord
+calcPressureForcePoint = calcAbstractForcePoint calcPressureForceBetweenPoints 
+
+calcViscosityForcePoint :: [DensPart] -> DensPart -> Coord
+calcViscosityForcePoint = calcAbstractForcePoint calcViscosityForceBetweenPoints
+
+calcTensionForcePoint :: [DensPart] -> DensPart -> Coord
+calcTensionForcePoint = calcAbstractForcePoint calcTensionForceBetweenPoints
+
+
 -- force from part2 on part1
-calcPressureForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
+calcPressureForceBetweenPoints :: DensPart -> DensPart -> Coord
 calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) =
   unit ^* ((mass part2) * (pressure1 + pressure2) / (2 * dens2) * (gradWPoly len))
   where
@@ -26,42 +46,28 @@ calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) =
     pressure1 = calcPressurePoint dens1
     pressure2 = calcPressurePoint dens2
 
-calcPressureForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
-calcPressureForcePoint densAndWater densPart = sum (map g densAndWater)
-  where
-    g :: (Double, Particle) -> Coord
-    g helpDensPart = calcPressureForceBetweenPoints densPart helpDensPart
-
-calcViscosityForceBetweenPoints :: (Double,Particle) -> (Double,Particle) -> Coord
+calcViscosityForceBetweenPoints :: DensPart -> (Double,Particle) -> Coord
 calcViscosityForceBetweenPoints (dens1,part1) (dens2,part2) = ((velocity part1) - (velocity part2)) ^* (mass part2)
   ^* (mu / dens2) ^* (hessWPoly ( distance (position part1) (position part2)))
 
-calcViscosityForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
-calcViscosityForcePoint densAndWater densPart = sum (map g densAndWater)
-  where 
-    g :: (Double, Particle) -> Coord
-    g helpPart = calcViscosityForceBetweenPoints densPart helpPart
 
-calcTensionForceBetweenPoints :: (Double, Particle) -> (Double, Particle) -> Coord
+calcTensionForceBetweenPoints :: DensPart -> DensPart -> Coord
 calcTensionForceBetweenPoints (dens1, part1) (dens2, part2) = unit ^* ((mass part2) * sigma / dens2 *
   (hessWPoly (distance (position part1) (position part2))))
   where
     unit = rotateDevanosto (unitVector (position part1) (position part2))
 
-calcTensionForcePoint :: [(Double, Particle)] -> (Double, Particle) -> Coord
-calcTensionForcePoint densAndWater densPart = sum (map g densAndWater)
-  where
-    g :: (Double, Particle) -> Coord
-    g helpDensPart = - (calcTensionForceBetweenPoints densPart helpDensPart)
+
+
 
 sigma :: Double
 sigma = 0
 
 h :: Double
-h = 3
+h = 5
 
 mu :: Double 
-mu = 2
+mu = 1
 
 wPoly :: Double -> Double
 wPoly r
@@ -80,8 +86,8 @@ hessWPoly r
 
 applyHorizontalBound :: Particle -> Particle
 applyHorizontalBound particle
-  | py <= -450 = particle { position = (V2 px (-450)), velocity = (V2 vx 0) }
-  | py >= 450 =  particle { position = (V2 px 450), velocity = (V2 vx 0) }
+  | py < -450 = particle { position = (V2 px (-450)), velocity = (V2 vx 0) }
+  | py > 450 =  particle { position = (V2 px 450), velocity = (V2 vx 0) }
   | otherwise = particle
   where
     V2 px py = position particle
@@ -89,8 +95,8 @@ applyHorizontalBound particle
 
 applyVerticalBound :: Particle -> Particle
 applyVerticalBound particle
-  | px <= -800 = particle { position = (V2 (-800) py), velocity = (V2 0 vy) }
-  | px >= 800 =  particle { position = (V2 800 py), velocity = (V2 0 vy) }
+  | px < -800 = particle { position = (V2 (-800) py), velocity = (V2 0 vy) }
+  | px > 800 =  particle { position = (V2 800 py), velocity = (V2 0 vy) }
   | otherwise = particle
   where
     V2 px py = position particle
@@ -104,20 +110,20 @@ rotateDevanosto (V2 a b) = V2 b (-a)
 advance :: Water -> Water
 advance water = map g densAndWater
   where
-    densAndWater :: [(Double, Particle)]
+    densAndWater :: [DensPart]
     densAndWater = zip densities water
     densities :: [Double]
     densities = getDensity water
-    pressureForce :: (Double, Particle) -> Coord
+    pressureForce :: DensPart -> Coord
     pressureForce = calcPressureForcePoint densAndWater
-    viscosityForce :: (Double, Particle) -> Coord
+    viscosityForce :: DensPart -> Coord
     viscosityForce = calcViscosityForcePoint densAndWater
     tensionForce :: (Double,Particle) -> Coord
-    tensionForce  = calcTensionForcePoint densAndWater
-    g :: (Double, Particle) -> Particle
+    tensionForce _ = V2 0 0
+    g :: DensPart -> Particle
     g (dens, part) = applyBound part { position=position part + velocity part
-      , velocity=velocity part + (V2 0 (-9.8 / 15)) + (pressureForce (dens, part) + 
-          viscosityForce (dens, part) + tensionForce (dens,part)) ^/ mass part}
+      , velocity=velocity part + (V2 0 (-9.8 / 15)) + ((pressureForce (dens, part) + 
+          viscosityForce (dens, part) + tensionForce (dens,part)) ^/ (mass part))}
 
 
 calcDensity :: Water -> (Double -> Double) -> Coord -> Double

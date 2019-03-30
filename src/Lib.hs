@@ -6,7 +6,7 @@ import Graphics.Gloss
 import Linear
 
 window :: Display
-window = InWindow "Anime eto iskusstvo" (1600, 900) (10, 10)
+window = InWindow "Water" (1600, 900) (10, 10)
 
 background :: Color
 background = black
