@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 module Functions where
 
 import           Linear   (V2 (..), distance, (^*), (^/))
@@ -14,26 +15,26 @@ unitVector start end
 calcPressurePoint :: Double -> Double
 calcPressurePoint p = k * (p - p0)
   where
-    k = 2
+    k = 0.05
     p0 = 0.1
 
 -- Must be from 0 to 1
 attenuationBounceCoef :: Double
-attenuationBounceCoef = 0
+attenuationBounceCoef = 0.5
 
 gravityCoef :: Double
-gravityCoef = 0.5
+gravityCoef = 0.05
 
 
 -- 1.0 not bad
 tensionCoef :: Double
-tensionCoef = 1
+tensionCoef = 5
 
 h :: Double
-h = 15
+h = 4
 
 viscocityCoef :: Double
-viscocityCoef = 2
+viscocityCoef = -2
 
 
 
@@ -59,18 +60,26 @@ calcTensionForcePoint = calcAbstractForcePoint calcTensionForceBetweenPoints
 
 -- force from part2 on part1
 calcPressureForceBetweenPoints :: DensPart -> DensPart -> Coord
-calcPressureForceBetweenPoints (dens1, part1) (dens2, part2) =
-  unit ^* ((mass part2) * (pressure1 + pressure2) / (2 * dens2) * (gradWPoly len))
+calcPressureForceBetweenPoints (dens1, part1) (dens2, part2)
+  | k /= 0 = unit ^* ((mass part2) * (pressure1 + pressure2) / (2 * dens2) * k)
+  | otherwise = 0
   where
-    unit = unitVector (position part2) (position part1)
+    k = gradWPoly len
+    unit = unitVector (position part1) (position part2)
     len = distance (position part1) (position part2)
     pressure1 = calcPressurePoint dens1
     pressure2 = calcPressurePoint dens2
 
 
 calcViscosityForceBetweenPoints :: DensPart -> (Double,Particle) -> Coord
-calcViscosityForceBetweenPoints (_dens1,part1) (dens2,part2) = ((velocity part1) - (velocity part2)) ^* (mass part2)
-  ^* (viscocityCoef / dens2) ^* (hessWPoly ( distance (position part1) (position part2)))
+calcViscosityForceBetweenPoints (_dens1,part1) (dens2,part2)
+  | k /= 0 = (v1 - v2) ^* (m2 * viscocityCoef / dens2 * k)
+  | otherwise = 0
+  where
+    k = hessWPoly ( distance (position part1) (position part2))
+    v1 = velocity part1
+    v2 = velocity part2
+    m2 = mass part2
 
 
 calcTensionForceBetweenPoints :: DensPart -> DensPart -> Coord
@@ -83,22 +92,22 @@ calcTensionForceBetweenPoints (_dens1, part1) (dens2, part2) = unit ^* ((mass pa
 
 wDens  :: Double -> Double
 wDens r
-  | r <= h    = (1-r/h) ** 2
+  | r <= h    = (1-r/h) ^ 2
   | otherwise = 0
 
 wPoly :: Double -> Double
 wPoly r
-  | r <= h = 315 / 64 / pi / h**9 * (h**2 - r**2)**3
+  | r <= h = 315 / 64 / pi / h^9 * (h^2 - r^2)^3
   | otherwise = 0
 
 gradWPoly :: Double -> Double
 gradWPoly r
-  | r <= h = -315 / 64 / pi / h**9 * 6 * r * (h**2 - r**2) ** 2
+  | r <= h = -315 / 64 / pi / h^9 * 6 * r * (h^2 - r^2) ^ 2
   | otherwise = 0
 
 hessWPoly :: Double -> Double
 hessWPoly r
-  | r <= h = 315 / 64 / pi / h**9 * 6 * (h**2 - r**2) * (4 * r**2 - (h**2 - r**2))
+  | r <= h = 315 / 64 / pi / h^9 * 6 * (h^2 - r^2) * (4 * r^2 - (h^2 - r^2))
   | otherwise = 0
 
 applyHorizontalBound :: Particle -> Particle

@@ -16,11 +16,11 @@ type Water = [Particle]
 
 mkParticle :: Coord -> Particle
 mkParticle coord = Particle
-  { color     = white
+  { color     = withAlpha 0.5 white
   , position  = coord
   , velocity  = V2 0 0
   , mass      = 1.0
   }
 
 initialState :: Water
-initialState = [ mkParticle (V2 x y) | x <- [0..10] , y <- [0..10] ]
+initialState = [ mkParticle (V2 x y) | x <- [-5..5] , y <- [-5..5] ]

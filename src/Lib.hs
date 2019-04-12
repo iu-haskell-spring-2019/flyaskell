@@ -1,9 +1,10 @@
 module Lib (run) where
 
-import Functions (advance)
-import Particle
-import Graphics.Gloss
-import Linear
+import           Data.Function  ((&))
+import           Functions      (advance, h)
+import           Graphics.Gloss
+import           Linear
+import           Particle
 
 window :: Display
 window = InWindow "Water" (1600, 900) (10, 10)
@@ -12,8 +13,14 @@ background :: Color
 background = black
 
 drawParticle :: Particle -> Picture
-drawParticle part = Graphics.Gloss.color (Particle.color part) (translate x y (thickCircle 5 10))
+drawParticle part = (particle <> hcircle)
+  & translate x y
   where
+    -- uncomment to see h-circles
+    hcircle = blank -- circle (realToFrac h) & Graphics.Gloss.color blue
+    particle
+      = thickCircle (realToFrac h / 2) (realToFrac h)
+      & Graphics.Gloss.color (Particle.color part)
     i :: Double
     j :: Double
     V2 i j = position part
@@ -22,10 +29,12 @@ drawParticle part = Graphics.Gloss.color (Particle.color part) (translate x y (t
     (x, y) = (realToFrac i,  realToFrac j)
 
 drawAll :: Water -> Picture
-drawAll water = foldl g blank water
- where
-   g :: Picture -> Particle -> Picture
-   g pic part = pic <> drawParticle part
+drawAll water = scale 0.5 0.5 (drawFrame <> foldMap drawParticle water)
+
+drawFrame :: Picture
+drawFrame
+  = Graphics.Gloss.color white (rectangleSolid 1610 910)
+ <> Graphics.Gloss.color black (rectangleSolid 1600 900)
 
 run :: IO ()
 run = simulate window background 30 initialState drawAll adv
