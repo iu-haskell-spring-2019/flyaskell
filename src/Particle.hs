@@ -23,4 +23,4 @@ mkParticle coord = Particle
   }
 
 initialState :: Water
-initialState = [ mkParticle (V2 x y) | x <- [-5..5] , y <- [-5..5] ]
+initialState = [ mkParticle (V2 x y) | x <- [-20..20] , y <- [-20..20] ]

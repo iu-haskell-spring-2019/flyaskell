@@ -38,7 +38,6 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- "sdl2-2.4.1.0"
 - "linear-1.20.8"
 - "gloss-1.13.0.1"
 

@@ -27,7 +27,6 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
-  - sdl2
   - linear
   - gloss
 
